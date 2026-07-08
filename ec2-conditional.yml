@@ -17,13 +17,10 @@ Parameters:
 
   InstanceType:
     Type: String
-    Default: t2.micro
+    Default: t3.micro
     AllowedValues:
-      - t2.micro
       - t3.micro
       - t3.small
-      - t3.medium
-      - t3.large
     Description: Instance type used for dev; prod always uses t3.large
 
 Conditions:
