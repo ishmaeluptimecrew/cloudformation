@@ -1,0 +1,48 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: EC2 instance with environment conditions and a dynamic (SSM-resolved) AMI
+
+Parameters:
+  LatestAmiId:
+    Type: 'AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>'
+    Default: /aws/service/canonical/ubuntu/server/24.04/stable/current/amd64/hvm/ebs-gp3/ami-id
+    Description: Auto-resolved to the latest Ubuntu 24.04 AMI for the deploy region
+
+  Environment:
+    Type: String
+    Default: dev
+    AllowedValues:
+      - dev
+      - prod
+    Description: Deployment environment; controls the instance size
+
+  InstanceType:
+    Type: String
+    Default: t2.micro
+    AllowedValues:
+      - t2.micro
+      - t3.micro
+      - t3.small
+      - t3.medium
+      - t3.large
+    Description: Instance type used for dev; prod always uses t3.large
+
+Conditions:
+  IsProd: !Equals [!Ref Environment, prod]
+
+Resources:
+  MyEC2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: !If [IsProd, t3.large, !Ref InstanceType]
+      ImageId: !Ref LatestAmiId
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+
+Outputs:
+  InstanceId:
+    Description: ID of the created EC2 instance
+    Value: !Ref MyEC2Instance
+  InstanceType:
+    Description: Instance type selected for this environment
+    Value: !If [IsProd, t3.large, !Ref InstanceType]
